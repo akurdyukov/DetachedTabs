@@ -5,3 +5,4 @@ build
 WebContent/WEB-INF/lib
 WebContent/WEB-INF/web.xml
 WebContent/VAADIN/widgetsets
+target
