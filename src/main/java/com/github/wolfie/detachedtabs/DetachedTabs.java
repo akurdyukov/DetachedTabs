@@ -1,5 +1,7 @@
 package com.github.wolfie.detachedtabs;
 
+import java.io.Serializable;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -83,7 +85,7 @@ public abstract class DetachedTabs extends CustomComponent {
   
   public enum Orientation {
     HORIZONTAL, VERTICAL
-  };
+  }
   
   private final AbstractOrderedLayout layout;
   private final ComponentContainer componentContainer;
@@ -196,6 +198,7 @@ public abstract class DetachedTabs extends CustomComponent {
     shownTab = button;
     
     adjustTabStyles();
+	  fireSelectedTabChange(componentToSwitch);
   }
   
   @Override
@@ -221,4 +224,90 @@ public abstract class DetachedTabs extends CustomComponent {
     
     super.setHeight(height, unit);
   }
+	private static final Method SELECTED_TAB_CHANGE_METHOD;
+    static {
+        try {
+            SELECTED_TAB_CHANGE_METHOD = SelectedTabChangeListener.class
+                    .getDeclaredMethod("selectedTabChange",
+                            new Class[] { SelectedTabChangeEvent.class });
+        } catch (final java.lang.NoSuchMethodException e) {
+            // This should never happen
+            throw new java.lang.RuntimeException(
+                    "Internal error finding methods in TabSheet");
+        }
+    }
+
+	 /**
+     * Selected tab change event. This event is sent when the selected (shown)
+     * tab in the tab sheet is changed.
+     *
+     * @author Alik Kurdyukov
+     */
+	public class SelectedTabChangeEvent extends Component.Event {
+        /**
+         * New instance of selected tab change event
+         *
+         * @param source
+         *            the Source of the event.
+         */
+        public SelectedTabChangeEvent(Component source) {
+            super(source);
+        }
+
+        /**
+         * Tab sheet component where the event occurred.
+         *
+         * @return the Source of the event.
+         */
+        public Component getTabSheet() {
+            return (Component) getSource();
+        }
+    }
+
+	 /**
+     * Selected tab change event listener. The listener is called whenever
+     * another tab is selected, including when adding the first tab to a
+     * tabsheet.
+     *
+     * @author Alik Kurdyukov
+     */
+    public interface SelectedTabChangeListener extends Serializable {
+
+        /**
+         * Selected (shown) tab in tab sheet has has been changed.
+         *
+         * @param event the selected tab change event.
+         */
+        public void selectedTabChange(SelectedTabChangeEvent event);
+    }
+
+	/**
+     * Adds a tab selection listener
+     *
+     * @param listener
+     *            the Listener to be added.
+     */
+    public void addListener(SelectedTabChangeListener listener) {
+        addListener(SelectedTabChangeEvent.class, listener,
+                SELECTED_TAB_CHANGE_METHOD);
+    }
+
+    /**
+     * Removes a tab selection listener
+     *
+     * @param listener
+     *            the Listener to be removed.
+     */
+    public void removeListener(SelectedTabChangeListener listener) {
+        removeListener(SelectedTabChangeEvent.class, listener,
+                SELECTED_TAB_CHANGE_METHOD);
+    }
+
+    /**
+     * Sends an event that the currently selected tab has changed.
+     * @param tab selected tab component
+     */
+    protected void fireSelectedTabChange(Component tab) {
+        fireEvent(new SelectedTabChangeEvent(tab));
+    }
 }

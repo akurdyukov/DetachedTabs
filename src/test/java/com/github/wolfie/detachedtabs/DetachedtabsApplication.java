@@ -25,6 +25,12 @@ public class DetachedtabsApplication extends Application {
     body.setSizeFull();
     
     final DetachedTabs detachedTabs = new DetachedTabs.Horizontal(body);
+	  detachedTabs.addListener(new DetachedTabs.SelectedTabChangeListener() {
+		  @Override
+		  public void selectedTabChange(DetachedTabs.SelectedTabChangeEvent event) {
+			  mainWindow.showNotification("Tab changed!");
+		  }
+	  });
     
     final HorizontalLayout header = new HorizontalLayout();
     final Label logo = new Label("LOGO!");
